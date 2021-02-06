@@ -17,7 +17,8 @@ var brickHeight = 20;
 var brickPadding = 10;
 var brickOffsetTop = 30;
 var brickOffsetLeft = 30;
-
+var score = 0;
+var lives = 3;
 
 var bricks = [];
 for (var c=0; c< brickColumnCount; c++){
@@ -30,7 +31,14 @@ for (var c=0; c< brickColumnCount; c++){
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler,false);
+document. addEventListener("mousemove", mouseMoveHandler,false);
 
+function mouseMoveHandler(e){
+    var relativeX = e.clientX - canvas.offsetLeft;
+    if(relativeX >0 && relativeX <canvas.width){
+        paddleX = relativeX - paddleWidth/2;
+    }
+}
 function keyDownHandler(e){
     if(e.key == "Right" || e.key == "ArrowRight"){
         rightPressed = true;
@@ -53,10 +61,25 @@ function collisionDetection(){
                 if(x > b.x && x < b.x+ brickWidth && y > b.y && y < b.y + brickHeight){
                     dy = -dy;
                     b.status = 0;
+                    score+= 2;
+                    if(score === 2*(brickRowCount * brickColumnCount)){
+                        alert("YOU WIN, CONGRATULATIONS!");
+                        document.location.reload();
+                    }
                 }
             }
         }
     }
+}
+function drawScore(){
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Score:" + score, 8, 20);
+}
+function drawLives(){
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Lives: "+ lives, canvas.width - 65, 20);
 }
 function drawBall(){
     ctx.beginPath();
@@ -95,6 +118,8 @@ function draw(){
     drawBricks();
     drawBall();
     drawPaddle();
+    drawScore();
+    drawLives();
     collisionDetection();
     //make the ball bounce
     if(x+ dx > canvas.width-ballRadius || x + dx < ballRadius){
@@ -107,14 +132,21 @@ function draw(){
             dy = -dy;
         }
         else {
-            alert("GAME OVER");
-            document.location.reload();
-            clearInterval(interval); // Needed for Chrome to end game
+            lives--;
+            if(lives == 0){
+                alert("GAME OVER");
+                alert("Score: "+ score);
+                document.location.reload();
+                
+            }else{
+                x = canvas.width/2;
+                y = canvas.height- 30;
+                dx = 2;
+                dy = -2;
+                paddleX = (canvas.width - paddleWidth)/2;
+            }
         }
-        /*
-        alert("GAME OVER!");
-        document.location.reload();
-        clearInterval(interval);*/
+        
     }
     x+=dx;
     y+=dy;
@@ -130,9 +162,19 @@ function draw(){
             paddleX = 0;
         }
     }
+    if(document. addEventListener("mousemove", mouseMoveHandler)){
+        
+        if(paddleX < canvas.width- paddleWidth){
+            paddleX += 7;
+            paddleX = canvas.width - paddleWidth;
+        }else if(paddleX > 0){
+            paddleX -= 7;
+        }
+    }
+    requestAnimationFrame(draw);
 }
 
-var interval = setInterval(draw,10);
+draw();
 //changing the ball speed and changing its direction.
 //changing the color of the ball to a random color every time it hits the wall.
 //make the paddle move faster or slower or change is size
